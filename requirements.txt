@@ -5,3 +5,4 @@ google-cloud-speech
 pyaudio
 pyautogui
 pywin32
+audioop-lts
