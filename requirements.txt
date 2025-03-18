@@ -1,0 +1,7 @@
+python-dotenv
+openai
+elevenlabs
+google-cloud-speech
+pyaudio
+pyautogui
+pywin32
