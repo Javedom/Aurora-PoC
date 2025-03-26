@@ -4,6 +4,7 @@ This is a Finnish-language voice assistant example that demonstrates:
 
 - Text-to-speech (TTS) via ElevenLabs
 - Speech-to-text (STT) via Google Cloud Speech-to-Text or a fallback to keyboard input
+- OpenAI for short, targeted intent solving (yes/no, name extraction, address extraction)
 - Basic conversation flow with three questions:
   - Whether to open Notepad
   - The user's name
