@@ -1,4 +1,4 @@
-# Finnish Taxi Booking Voice Assistant
+# Aurora - Finnish Taxi Booking Voice Assistant
 
 This project implements a conversational AI assistant in Python that allows users to book a taxi using voice commands (with keyboard fallback) primarily in Finnish. It leverages OpenAI for natural language understanding, ElevenLabs for text-to-speech, and Google Cloud Speech-to-Text for voice recognition.
 
