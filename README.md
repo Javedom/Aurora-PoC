@@ -1,99 +1,129 @@
-# Finnish Voice Assistant – Aurora
+# Finnish Taxi Booking Voice Assistant
 
-This is a Finnish-language voice assistant example that demonstrates:
+This project implements a conversational AI assistant in Python that allows users to book a taxi using voice commands (with keyboard fallback) primarily in Finnish. It leverages OpenAI for natural language understanding, ElevenLabs for text-to-speech, and Google Cloud Speech-to-Text for voice recognition.
 
-- Text-to-speech (TTS) via ElevenLabs
-- Speech-to-text (STT) via Google Cloud Speech-to-Text or a fallback to keyboard input
-- OpenAI for short, targeted intent solving (yes/no, name extraction, address extraction)
-- Basic conversation flow with three questions:
-  - Whether to open Notepad
-  - The user's name
-  - The user's address
+## Features
 
-Upon successful responses, the assistant writes the name and address into a running Notepad instance (Windows) or, as a fallback, a local text file. For demonstration purposes, it uses the `subprocess` module to open Notepad on Windows. If you are running another operating system, you may adapt the notepad opening or disable that part of the code.
+* **Conversational Interface:** Engages the user in a step-by-step dialogue to gather booking details.
+* **Voice Input:** Utilizes Google Cloud Speech-to-Text for recognizing Finnish speech commands via the microphone.
+* **Keyboard Fallback:** Provides an option to use keyboard input if voice recognition fails or is explicitly chosen (`--keyboard` flag).
+* **Natural Language Understanding (NLU):** Employs OpenAI's GPT models (specifically `gpt-4o-mini` in the code) to analyze user input for addresses, time, requirements, name, and confirmation.
+* **Realistic Text-to-Speech (TTS):** Uses ElevenLabs API to generate natural-sounding Finnish voice responses.
+* **State Management:** Follows a defined workflow to collect pickup/destination info, time, special requirements, and passenger name.
+* **Information Extraction:** Extracts structured data (addresses, time formats, requirement codes) from unstructured user input.
+* **Confirmation:** Summarizes the booking details and asks for user confirmation before finalizing.
+* **Simulated Booking:** On confirmation, generates a JSON payload representing the booking details and saves it to a local file (does not actually connect to a real booking API).
+* **Logging:** Records conversation flow and potential errors to `assistant.log`.
 
-## How It Works (Flow)
+## Technologies Used
 
-1. The assistant asks if the user wants to open Notepad. (Yes/No)
-2. If "Yes", it opens Notepad and asks for the user's name.
-3. It writes the name into Notepad (or fallback text file).
-4. Then it asks for the user's address.
-5. It writes the address into Notepad (or fallback text file).
-6. The assistant stops after the third question or if the user says "Exit" at any point.
+* **Python 3.x**
+* **OpenAI API:** For NLU and intent analysis.
+* **ElevenLabs API:** For Text-to-Speech (TTS).
+* **Google Cloud Speech-to-Text API:** For Speech-to-Text (STT).
+* **PyAudio:** For accessing the microphone audio stream.
+* **python-dotenv:** For managing API keys and environment variables.
+* **Standard Libraries:** `os`, `sys`, `time`, `logging`, `re`, `json`, `datetime`, `typing`.
 
-All speech is in Finnish, and the code tries to parse user speech with specialized prompts sent to OpenAI for short, targeted classification (yes/no, name extraction, address extraction).
+## Setup
 
-## Requirements & Installation
+1.  **Prerequisites:**
+    * Python 3.7+ installed.
+    * Microphone connected and configured (for voice input).
+    * Speakers/headphones (for voice output).
+    * Potentially system dependencies for PyAudio (like `portaudio`). On Debian/Ubuntu: `sudo apt-get install portaudio19-dev python3-pyaudio`. On macOS: `brew install portaudio; pip install pyaudio`. Windows users usually don't need extra steps if using pip.
 
-- Python 3.7+ recommended.
-- Make sure you have PortAudio installed if you intend to use pyaudio on macOS/Linux. On Windows, pyaudio usually installs without additional system steps, but can also require installing [VC++ Build Tools].
-- Install Python dependencies:
+2.  **Clone the Repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd <your-repository-directory>
+    ```
+
+3.  **Create a Virtual Environment (Recommended):**
+    ```bash
+    python -m venv venv
+    # On Windows
+    .\venv\Scripts\activate
+    # On macOS/Linux
+    source venv/bin/activate
+    ```
+
+4.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+5.  **Configure API Keys and Credentials:**
+    * **Create a `.env` file** in the project root directory.
+    * Add your API keys to the `.env` file:
+        ```dotenv
+        OPENAI_API_KEY="your_openai_api_key_here"
+        ELEVENLABS_API_KEY="your_elevenlabs_api_key_here"
+        # Optional: Specify a specific ElevenLabs voice ID if desired
+        # ELEVENLABS_VOICE_ID="your_preferred_voice_id" 
+        
+        # Path to your Google Cloud service account key file
+        GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/google_cloud_key.json" 
+        ```
+    * **Google Cloud Credentials:**
+        * You need a Google Cloud Platform project with the Speech-to-Text API enabled.
+        * Create a service account and download its JSON key file.
+        * Update the `GOOGLE_APPLICATION_CREDENTIALS` path in your `.env` file to point to this downloaded JSON key file. Alternatively, you can set this as a system environment variable. The script checks both the `.env` file variable and the system environment variable.
+
+## Usage
+
+Run the main script from your terminal:
 
 ```bash
-pip install -r requirements.txt
-```
+python AuroraVGoogle.py
 
-### Dependencies Overview
+The assistant will start, greet you, and ask for the pickup address.  
+Speak clearly into your microphone when prompted (🎤 Kuunnellaan...).  
+Follow the assistant's prompts to provide booking details.
 
-- **python-dotenv** – for loading API keys from .env
-- **openai** – for GPT-based classification
-- **elevenlabs** – for text-to-speech
-- **google-cloud-speech** – for speech-to-text using Google Cloud
-- **pyaudio** – for capturing microphone input in real-time (PortAudio wrapper)
-- **audioop-lts**
-- **pyautogui** (optional) – for simulating keystrokes in Notepad
-- **pywin32** (alternative optional) – for sending keystrokes in Windows environments
-- **logging, re, subprocess, queue, time, etc.** – standard library modules
-
-## Environment Variables
-
-Before running, create a `.env` file in the same folder as your script (see example below) or set environment variables directly. The following keys are needed:
-
-- `ELEVENLABS_API_KEY` – Your ElevenLabs API key
-- `OPENAI_API_KEY` – Your OpenAI API key
-- `GOOGLE_APPLICATION_CREDENTIALS` – Path to your Google Cloud service account JSON file (optional, only if you want speech recognition via Google). If you don't set this, the program will fall back to keyboard input.
-
-## Running the Program
-
-1. Create your `.env` file (see the sample below).
-2. Run the script:
+**Using Keyboard Input:**  
+To force the assistant to use keyboard input instead of the microphone:
 
 ```bash
-python main.py
-```
+python AuroraVGoogle.py --keyboard
 
-3. Follow the voice or text prompts. When using Google Cloud STT, speak clearly in Finnish while your microphone is active. If no valid credentials are found, the assistant falls back to a simple keyboard prompt.
+## Workflow
 
-## Notes and Considerations
+**Start:** Assistant greets the user.
 
-- **Windows-Specific**: The script calls `subprocess.Popen("notepad.exe")` to open Notepad. If you're on macOS/Linux, modify or comment out those lines or replace them with something like `subprocess.Popen(["gedit"])` (for Linux) or a relevant text editor.
-- **Microphone Permissions**: Ensure your OS microphone permissions allow Python to capture audio.
-- **Potential Issues**:
-  - pyaudio needs system-level libraries (PortAudio) installed.
-  - Using TTS from ElevenLabs or GPT-based classification from OpenAI consumes credits or tokens. Remember to set up billing on these services if needed.
-  - If speech recognition fails or credentials are missing, it falls back to a keyboard input method.
+**Ask Pickup:** Prompts for the pickup address (street, number, city). Handles cases where the city is initially missing.
 
-## Example .env File
+**Ask Destination:** Prompts for the destination address. Allows the user to specify “no destination.”
 
-Create a file named `.env` in your project directory with the contents:
+**Ask Time:** Asks for the desired pickup time (accepts specific times like “14:30”, relative times like “vartin päästä”, or immediate requests like “heti”).
 
-```ini
-ELEVENLABS_API_KEY=your-elevenlabs-api-key
-OPENAI_API_KEY=your-openai-api-key
-GOOGLE_APPLICATION_CREDENTIALS=path/to/your-google-cloud-credentials.json
-```
+**Ask Additional Info:** Inquires about special requirements (pets, wheelchair) or any other notes.
 
-If you do not have `GOOGLE_APPLICATION_CREDENTIALS`, just remove or comment out that line.
-The assistant will then revert to the keyboard-based fallback for user input.
+**Ask Name:** Asks for the passenger’s name for the booking confirmation.
 
-## Contributing
+**Build Payload:** Internally constructs the JSON payload based on collected information.
 
-Feel free to modify the code to adapt it for your locale, language, or platform:
+**Final Confirmation:** Reads back the summarized booking details (pickup, destination, time, name, requirements, notes) and asks for confirmation (“Onko tämä kaikki oikein?”).
 
-- Replace `subprocess.Popen("notepad.exe")` if you're not on Windows.
-- Change the speech recognition or TTS service.
-- Add more sophisticated conversation flow or error handling.
+**End:**
+- If confirmed (“yes”): Simulates booking success, saves the JSON payload to a timestamped file (e.g., `booking_YYYYMMDD_HHMMSS.json`), and ends.  
+- If denied (“no” or “exit”): Cancels the booking and ends.  
+- If timeout during confirmation: Cancels the booking for safety.  
+- If an error occurs: Logs the error, informs the user, and ends.
 
-## License
+---
 
-This project is provided "as is" without any warranty. You are free to use and modify it for your own purposes. If you plan on distributing, consider the licenses of the third-party libraries involved (OpenAI, ElevenLabs, Google Cloud, etc.)
+## Logging
+
+Detailed information about the conversation flow, API calls, intent analysis results, and errors are logged to the `assistant.log` file in the project directory.
+
+---
+
+## Limitations
+
+- **Simulated Booking:** This script does not actually book a taxi. It only generates and saves a JSON representation of the booking request.  
+- **Finnish Language Focus:** The prompts and NLU analysis are heavily tuned for Finnish.  
+- **API Costs:** Uses paid APIs (OpenAI, ElevenLabs, Google Cloud STT). Be mindful of usage costs.  
+- **Error Handling:** While basic error handling is included, complex conversational failures or API issues might require further refinement.  
+- **No Address Validation/Search:** The script relies on OpenAI to parse addresses but doesn’t validate them against a real map service or perform coordinate lookups (coordinates are explicitly set to `None` in the payload).
+
