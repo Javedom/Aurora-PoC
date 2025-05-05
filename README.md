@@ -35,8 +35,7 @@ This project implements a conversational AI assistant in Python that allows user
 
 2.  **Clone the Repository:**
     ```bash
-    git clone <your-repository-url>
-    cd <your-repository-directory>
+    git clone https://github.com/Javedom/Aurora-PoC/
     ```
 
 3.  **Create a Virtual Environment (Recommended):**
@@ -59,12 +58,13 @@ This project implements a conversational AI assistant in Python that allows user
         ```dotenv
         OPENAI_API_KEY="your_openai_api_key_here"
         ELEVENLABS_API_KEY="your_elevenlabs_api_key_here"
+        
+        # Path to your Google Cloud service account key file
+        GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/google_cloud_key.json"
+        ```
         # Optional: Specify a specific ElevenLabs voice ID if desired
         # ELEVENLABS_VOICE_ID="your_preferred_voice_id" 
         
-        # Path to your Google Cloud service account key file
-        GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/google_cloud_key.json" 
-        ```
     * **Google Cloud Credentials:**
         * You need a Google Cloud Platform project with the Speech-to-Text API enabled.
         * Create a service account and download its JSON key file.
