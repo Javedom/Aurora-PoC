@@ -280,7 +280,7 @@ class BasicKeyboardRecognizer:
 
 
 # ----------------------------------------------------------------
-# Taxi Booking Workflow (Search Removed, Coordinates Null)
+# Taxi Booking Workflow
 # ----------------------------------------------------------------
 class TaxiBookingWorkflow:
     def __init__(self, tts, recognizer, openai_client):
@@ -358,9 +358,9 @@ class TaxiBookingWorkflow:
         Input: "Nummelaan, Tuusankaari 12" -> Output: {{"street": "Tuusankaari", "number": "12", "city": "Nummela"}}
         Input: "Mä haluan mennä Helsingin keskustaan" (destination) -> Output: {{"street": null, "number": null, "city": "Helsinki"}}
         Input: "Ei määränpäätä" (destination) -> Output: "NO_DESTINATION"
+        Input: "En tiedä vielä" (destination) -> Output: "NO_DESTINATION"
+        Input: "Jotain ihan muuta" -> Output: "NO_DESTINATION"
         Input: "Lopeta" -> Output: "EXIT"
-        Input: "En tiedä vielä" (destination) -> Output: null
-        Input: "Jotain ihan muuta" -> Output: null
         """
         analysis_result = self._analyze_with_openai(prompt, f"{context} address")
 
@@ -474,6 +474,7 @@ class TaxiBookingWorkflow:
 
         Examples:
         Input: "Heti kiitos" -> Output: "heti"
+        Input: "asap" -> Output: "heti"
         Input: "Nyt heti" -> Output: "heti"
         Input: "Kello 14:30" -> Output: "14:30"
         Input: "Vartin päästä" -> Output: "vartin päästä"
@@ -554,7 +555,7 @@ class TaxiBookingWorkflow:
         Input: "puolen tunnin kuluttua" -> Output: {{"type": "relative", "minutes_offset": 30}}
         Input: "kello 2 yöllä" -> Output: {{"type": "absolute", "hour": 2, "minute": 0}} # Could imply next day if current time is late PM
         Input: "huomenna kello 9" -> Output: {{"type": "absolute", "hour": 9, "minute": 0, "day_offset": 1}}
-        Input: "ei väliä" -> Output: null
+        Input: "ei väliä" -> Output: {{"type": "immediate"}}
         Input: "joskus iltapäivällä" -> Output: null (too ambiguous)
         """
         analysis_result = self._analyze_with_openai(prompt, "structured time parsing")
@@ -730,7 +731,8 @@ class TaxiBookingWorkflow:
         - Focus on extracting just the name. Common patterns are "Nimeni on [Name]", "Olen [Name]", or just "[Name]".
         - Do NOT include introductory phrases like "Nimeni on" or "Olen" in the extracted name.
         - If the user wants to exit or cancel (e.g., "lopeta", "peruuta"), return the specific string "EXIT".
-        - If no name is provided, or the input is irrelevant (e.g., "Ei kiitos", "Voit käyttää numeroa"), return the specific string "UNKNOWN".
+        - If no name is provided, or the input is irrelevant (e.g., "Ei kiitos", "Voit käyttää numeroa"), return "NAME: Ei Nimeä".
+        - If unsure about the user's resposten, return "UNKNOWN"
 
         Return ONLY ONE of the following:
         1. "NAME: [Extracted Name]" (e.g., "NAME: Matti Virtanen")
@@ -744,10 +746,10 @@ class TaxiBookingWorkflow:
         Input: "Olen Liisa Jokinen" -> Output: "NAME: Liisa Jokinen"
         Input: "Pekka" -> Output: "NAME: Pekka"
         Input: "Lopeta" -> Output: "EXIT"
-        Input: "Ei kiitos, käytä numeroa" -> Output: "UNKNOWN"
-        Input: "En halua sanoa" -> Output: "UNKNOWN"
-        Input: "Selvä" -> Output: "UNKNOWN"
-        Input: "En halua antaa nimeä" -> Output: "UNKNOWN"
+        Input: "Ei kiitos, käytä numeroa" -> Output: "NAME: Ei Nimeä"
+        Input: "En halua sanoa" -> Output: "NAME: Ei Nimeä"
+        Input: "Selvä" -> Output: "NAME: Ei Nimeä"
+        Input: "En halua antaa nimeä" -> Output: "NAME: Ei Nimeä"
         """
         analysis_result = self._analyze_with_openai(prompt, "name extraction")
 
@@ -789,8 +791,8 @@ class TaxiBookingWorkflow:
         User input: "{user_input}"
 
         Consider common Finnish expressions:
-        - Affirmative ("kyllä", "joo", "juu", "okei", "sopii", "on oikein", "vahvistan"): Return "yes".
-        - Negative ("ei", "en", "ei ole", "väärin", "ei käy"): Return "no".
+        - Affirmative ("kyllä", "joo", "juu", "okei", "sopii", "on oikein", "vahvistan", "you"): Return "yes".
+        - Negative ("ei", "en", "ei ole", "väärin", "ei käy", "noup"): Return "no".
         - Exit/Cancel ("lopeta", "peruuta", "peru"): Return "exit".
 
         Return EXACTLY one word: "yes", "no", "exit", or "unknown".
